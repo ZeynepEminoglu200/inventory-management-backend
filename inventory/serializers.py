@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import Category, StockLog, Item
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -27,3 +28,41 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+
+class StockLogSerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(source='item.name', read_only=True)
+    user_name = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = StockLog
+        fields = ['id', 'item', 'item_name', 'user', 'user_name', 'change_amount', 'timestamp']
+        read_only_fields = ['user', 'timestamp']
+
+
+class ItemSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+    stock_logs = StockLogSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Item
+        fields = [
+            'id',
+            'owner',
+            'name',
+            'description',
+            'quantity',
+            'category',
+            'created_at',
+            'updated_at',
+            'stock_logs',
+        ]
+
+    def validate_quantity(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Stock cannot be negative.")
+        return value
