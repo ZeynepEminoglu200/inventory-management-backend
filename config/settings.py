@@ -24,6 +24,9 @@ DATABASES = {
     }
 }
 
+# use JWT authentication by default
+# require authentication by default unless a view allows public access
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
