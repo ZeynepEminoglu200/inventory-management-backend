@@ -1,8 +1,38 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Category, StockLog, Item
+from .models import Profile
 
+class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+    email = serializers.EmailField(source="user.email")
 
+    class Meta:
+        model = Profile
+        fields = ["username", "email", "display_name", "profile_image"]
+
+    def update(self, instance, validated_data):
+        # Extract nested user data
+        user_data = validated_data.pop("user", None)
+
+        # Update profile fields
+        instance.display_name = validated_data.get(
+            "display_name", instance.display_name
+        )
+
+        if "profile_image" in validated_data:
+            instance.profile_image = validated_data["profile_image"]
+
+        instance.save()
+
+        # Update user fields
+        if user_data:
+            user = instance.user
+            user.email = user_data.get("email", user.email)
+            user.save()
+
+        return instance
+    
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     email = serializers.EmailField(required=True)

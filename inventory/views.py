@@ -1,7 +1,15 @@
 from rest_framework import generics, permissions, filters, serializers
 from .serializers import RegisterSerializer, ItemSerializer, CategorySerializer, StockLogSerializer
 from .models import Item, Category, StockLog
+from .models import Profile
+from .serializers import ProfileSerializer
 
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.profile
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -11,6 +19,7 @@ class RegisterView(generics.CreateAPIView):
 class CategoryListCreateView(generics.ListCreateAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
+    permission_classes = [permissions.AllowAny]
 
 
 class ItemListCreateView(generics.ListCreateAPIView):
