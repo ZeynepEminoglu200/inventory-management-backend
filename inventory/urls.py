@@ -6,7 +6,6 @@ from .views import (
     ItemDetailView,
     StockLogListView,
     ProfileView,
-    create_superuser,
 )
 
 urlpatterns = [
@@ -16,5 +15,4 @@ urlpatterns = [
     path('items/<int:pk>/', ItemDetailView.as_view(), name='item-detail'),
     path('stock-logs/', StockLogListView.as_view(), name='stock-log-list'),
     path('profile/', ProfileView.as_view(), name='profile'),
-    path('create-superuser/', create_superuser),
 ]
