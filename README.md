@@ -1,4 +1,18 @@
-# My Inventory Management System – Backend
+# Inventory Management System – Backend
+
+## Overview
+
+This project is the backend for the Inventory Management System, built using Django and Django REST Framework.
+
+It provides a RESTful API responsible for authentication, business logic, validation, and data persistence. The system is designed using enterprise software engineering principles such as separation of concerns, secure authentication, and scalable architecture.
+
+The backend supports:
+
+- User registration and authentication
+- Inventory item management (CRUD operations)
+- Category management
+- Stock tracking with audit logs
+- User profile management with image upload
 
 ---
 
@@ -34,43 +48,22 @@ http://127.0.0.1:8000
 
 ---
 
-## Overview
-
-This project is the backend for My Inventory Management System built using Django and Django REST Framework.
-
-It provides a RESTful API that handles authentication, business logic, and data storage for inventory management.
-
-The system allows users to:
-- Register and log in securely
-- Manage inventory items (CRUD operations)
-- Categorise items
-- Track stock changes
-- View stock history (audit logs)
-
----
-
 ## Architecture
 
-The system follows a three-layer architecture based on what was provided in the assigment brief:
+The system follows a three-layer architecture:
 
 ### Frontend (React)
-Handles UI and user interaction.
+- Handles UI, routing, and user interaction  
+- Communicates with backend via API  
 
 ### Backend (Django REST API)
-Handles:
-- Authentication
-- Business logic
-- Validation
-- API endpoints
+- Handles authentication, validation, and business logic  
+- Exposes RESTful endpoints  
 
 ### Database (PostgreSQL)
-Stores:
-- Users
-- Items
-- Categories
-- Stock logs
+- Stores users, items, categories, stock logs, and profiles  
 
-The frontend communicates with the backend via API endpoints only.
+The frontend communicates with the backend exclusively through API endpoints.
 
 ---
 
@@ -81,12 +74,13 @@ The frontend communicates with the backend via API endpoints only.
 - PostgreSQL
 - JWT Authentication (SimpleJWT)
 - Python Decouple (environment variables)
+- Pillow (image handling)
 
 ---
 
 ## Authentication
 
-Authentication is implemented using JWT (JSON Web Tokens).
+Authentication is implemented using JSON Web Tokens (JWT).
 
 ### Endpoints
 
@@ -100,17 +94,17 @@ Login:
 POST /api/token/
 ```
 
-Refresh token:
+Refresh Token:
 ```
 POST /api/token/refresh/
 ```
 
 ### Features
 
-- Secure password hashing
-- Token-based authentication
-- Protected API endpoints
-- User-specific data access
+- Secure password hashing using Django authentication
+- Token-based authentication for stateless sessions
+- Protected API endpoints using `IsAuthenticated`
+- User-specific data access control
 
 ---
 
@@ -132,6 +126,9 @@ Fields include:
 ### Category
 Used to group inventory items.
 
+Fields:
+- name
+
 ---
 
 ### StockLog
@@ -143,14 +140,23 @@ Fields include:
 - user
 - timestamp
 
-This supports audit history and traceability.
+This provides an audit trail for inventory changes.
+
+---
+
+### Profile
+Extends the default Django user model.
+
+Fields include:
+- user (OneToOne relationship)
+- display name
+- profile image
 
 ---
 
 ## API Endpoints
 
 ### Items
-
 ```
 GET    /api/items/
 POST   /api/items/
@@ -162,7 +168,6 @@ DELETE /api/items/<id>/
 ---
 
 ### Categories
-
 ```
 GET    /api/categories/
 POST   /api/categories/
@@ -171,21 +176,38 @@ POST   /api/categories/
 ---
 
 ### Stock Logs
-
 ```
 GET /api/stock-logs/
 ```
 
 ---
 
+### Profile
+```
+GET    /api/profile/
+PUT    /api/profile/
+```
+
+---
+
 ## Business Logic
 
-The backend includes key validation and logic:
+The backend includes key validation and domain logic:
 
 - Prevents negative stock values
-- Automatically tracks stock changes using StockLog
+- Tracks stock updates automatically using StockLog
 - Ensures users can only access their own items
-- Validates input data on the server side
+- Validates input data at the API level
+- Records audit history for inventory changes
+
+Example validation:
+
+```python
+def validate_quantity(self, value):
+    if value < 0:
+        raise serializers.ValidationError("Stock cannot be negative.")
+    return value
+```
 
 ---
 
@@ -197,7 +219,7 @@ The API supports:
 - Filter by category
 - Low-stock filtering
 
-Example:
+Examples:
 
 ```
 /api/items/?search=laptop
@@ -212,9 +234,9 @@ Example:
 Backend tests include:
 
 - Unit tests for models
-- API tests for endpoints
+- API endpoint testing
 - Validation testing (e.g. negative stock prevention)
-- Authentication testing
+- Authentication and permission testing
 
 Run tests with:
 
@@ -222,37 +244,93 @@ Run tests with:
 python manage.py test
 ```
 
+Testing focuses on verifying business logic and ensuring correct behaviour under different scenarios.
+
 ---
 
 ## Security
 
 The system includes:
 
-- Hashed passwords (Django auth)
-- JWT authentication
-- Protected endpoints
-- Environment variable configuration for sensitive data
+- Secure password hashing via Django auth
+- JWT-based authentication
+- Protected endpoints requiring authentication
+- User-specific data access control
+- Environment variables for sensitive data
 
 ---
 
 ## Environment Variables
 
-Configuration is handled using `.env`:
+Configuration is handled using environment variables.
 
 Example:
 
 ```
 SECRET_KEY=your-secret-key
-DEBUG=True
-DB_NAME=inventory_db
-DB_USER=postgres
-DB_PASSWORD=yourpassword
-DB_HOST=localhost
-DB_PORT=5432
+DEBUG=False
+DATABASE_URL=your-database-url
 ```
+
+This approach separates configuration from code and improves security.
 
 ---
 
 ## Deployment
 
-The backend can be deployed using platforms such as Render.
+The backend is deployed using Render.
+
+### Key Deployment Features
+
+- PostgreSQL database configured via `DATABASE_URL`
+- Environment variables used for configuration
+- Gunicorn used as the production server
+- Static files handled using WhiteNoise
+
+### Production Considerations
+
+- Separate frontend and backend services
+- Secure handling of credentials
+- Scalable API design using stateless JWT authentication
+
+---
+
+## Technical Decisions
+
+- **Django REST Framework** used for structured API development
+- **JWT authentication** chosen for stateless and scalable sessions
+- **PostgreSQL** used for production-ready relational database
+- **Separation of concerns** between models, serializers, and views
+- **Audit logging (StockLog)** implemented for traceability
+- **Environment-based configuration** for flexibility across environments
+
+These decisions align with enterprise application design principles.
+
+---
+
+## AI Usage Disclaimer
+
+Generative AI tools (such as ChatGPT) were used during the development of this project to:
+
+- Assist with debugging errors and resolving issues
+- Explain technical concepts related to Django, React, and API design
+- Suggest improvements to code structure and testing strategies
+- Help draft and refine documentation
+
+All AI-generated content was critically reviewed, tested, and adapted before being integrated into the final implementation. I maintain full understanding and ownership of all submitted code and design decisions.
+
+---
+
+## Summary
+
+This backend demonstrates:
+
+- Secure authentication using JWT
+- Full CRUD functionality for inventory management
+- Implementation of business logic and validation
+- Audit logging for traceability
+- Modular and maintainable architecture
+- Automated testing practices
+- Production deployment with environment configuration
+
+The system reflects enterprise-level design and provides a scalable foundation for future development.
